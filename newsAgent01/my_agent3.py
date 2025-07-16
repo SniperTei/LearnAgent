@@ -5,7 +5,7 @@ from pydantic_ai import Agent
 from dotenv import load_dotenv
 
 load_dotenv()
-model = GeminiModel("gemini-2.5-flash-preview-04-17")
+model = GeminiModel("gemini-2.0-flash")
 
 # --------------------------------------------------------------
 # 3. 带有结构化响应的代理
@@ -31,5 +31,5 @@ agent = Agent(model,
                             "Analyze queries carefully and provide structured responses.",
               result_type=ResponseModel)
 
-# result = agent.run_sync("I'm having trouble with my account. Can you help me?")
-# print(result.output)
+result = agent.run_sync("I'm having trouble with my account. Can you help me?")
+print(result.output)
