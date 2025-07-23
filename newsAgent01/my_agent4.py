@@ -1,12 +1,13 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field
 from pydantic_ai.models.gemini import GeminiModel
-from pydantic_ai import Agent
+from pydantic_ai import Agent, Tool
 
 from dotenv import load_dotenv
+from data_tool import get_movie_by_id, get_movies_by_star
 
 load_dotenv()
-model = GeminiModel("gemini-2.5-flash-preview-04-17")
+model = GeminiModel("gemini-2.5-flash")
 # --------------------------------------------------------------
 # 4. 带有结构化响应和依赖项的代理
 # --------------------------------------------------------------
@@ -18,39 +19,37 @@ model = GeminiModel("gemini-2.5-flash-preview-04-17")
 - 使用动态系统提示
 """
 
-class Movie(BaseModel):
-    """电影的结构。"""
-    title: str
-    year: int
-    rating: float
+@Tool
+def tool_get_movie_by_id(movie_id: str) -> dict:
+    """根据电影id获取电影数据"""
+    return get_movie_by_id(movie_id)
 
-class CustomerInfo(BaseModel):
-    """个人信息。"""
-    name: str
-    email: str
-    watch_history: Optional[List[Movie]] = None
-    like_list: Optional[List[Movie]] = None
-
-class ResponseModel(BaseModel):
-    """带有元数据的结构化响应。"""
-    response: str
-    sentiment: str = Field(description="my sentiment after I see the movie")
-
-# 添加基于依赖项的动态系统提示
-@agent5.system_prompt
-async def add_customer_name(ctx: RunContext[CustomerDetails]) -> str:
-    return f"Customer details: {to_markdown(ctx.deps)}"
+@Tool
+def tool_get_movies_by_star(star_name: str) -> list:
+    """根据电影明星姓名获取所有相关电影数据"""
+    return get_movies_by_star(star_name)
 
 # 带有结构化输出和依赖项的代理
 agent = Agent(
     model=model,
-    result_type=ResponseModel,
-    deps_type=CustomerInfo,
-    retries=3,
     system_prompt=(
-        "You are an intelligent customer movie manager. "
-        "Analyze movies carefully and provide structured responses. "
-        "Recommend movies to me based on my watch history and like list. "
-        "You will receive customer information as a dependency. "
+        "你是我的movie_manager。"
+        "当我说电影id时，帮我查找对应电影；"
+        "当我说明星名字时，帮我查找所有他/她参演的电影。"
+        "直接调用工具获取数据并用中文简明回复。"
     ),
+    tools=[tool_get_movie_by_id, tool_get_movies_by_star],
+    result_type=str,
+    retries=3,
 )
+
+# 示例用法
+if __name__ == "__main__":
+    print("welcome! please input 'exit' to exit")
+    while True:
+        user_input = input("You：")
+        if user_input.strip().lower() in ["exit", "quit", "退出"]:
+            print("good bye！")
+            break
+        result = agent.run_sync(user_input)
+        print("AI:", result.output)
