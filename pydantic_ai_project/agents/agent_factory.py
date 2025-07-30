@@ -23,5 +23,5 @@ class AgentFactory:
         tools = ToolFactory.get_tool(ToolType.FILE)
         # tools = [ToolFactory.get_tool(tool_type) for tool_type in tool_types] if tool_types else []
         # 打印tools
-        print(tools)
+        # print(tools)
         return Agent(model=model, tools=tools)
