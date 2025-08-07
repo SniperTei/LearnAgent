@@ -7,6 +7,7 @@ from tools.tool_factory import ToolFactory, ToolType
 
 class AgentType(Enum):
     """agent枚举"""
+    BASIC = "Basic"
     NEWES = "News"
     WEATHER = "Weather"
     FILE_MANAGER = "FileManager"
@@ -17,11 +18,10 @@ class AgentFactory:
     """agent工厂类,用于创建和管理不同类型的agent实例"""
     
     @classmethod
-    def create_agent(cls, agent_type: AgentType, model_type: ModelType, tool_types: Optional[List[ToolType]] = None) -> Agent:
+    def create_agent(cls, agent_type: AgentType, model_type: ModelType, tool_types: List[ToolType]) -> Agent:
         """创建agent实例"""
         model = ModelFactory.get_model(model_type)
-        tools = ToolFactory.get_tool(ToolType.FILE)
-        # tools = [ToolFactory.get_tool(tool_type) for tool_type in tool_types] if tool_types else []
-        # 打印tools
-        # print(tools)
+        # tools = ToolFactory.get_tool(ToolType.FILE)
+        # 把List[ToolType]
+        tools = ToolFactory.get_tools(tool_types)
         return Agent(model=model, tools=tools)
